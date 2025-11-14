@@ -3,9 +3,10 @@
  * Handles webhook callbacks from n8n workflow
  */
 
-import mongoose from 'mongoose';
+import { ObjectId } from 'mongodb';
 import logger from '../utils/logger.js';
 import { sendEmail } from '../services/email.service.js';
+import { getMongoDb } from '../config/mongodb.js';
 
 /**
  * Handle journey completion webhook from n8n
@@ -27,11 +28,11 @@ export const handleJourneyComplete = async (req, res) => {
     }
 
     // Get database connection
-    const db = mongoose.connection.db;
+    const db = getMongoDb();
 
     // Update journey in database
     const result = await db.collection('journeys').updateOne(
-      { _id: new mongoose.Types.ObjectId(journeyId) },
+      { _id: new ObjectId(journeyId) },
       {
         $set: {
           status: status,
@@ -54,8 +55,8 @@ export const handleJourneyComplete = async (req, res) => {
     // Store day data if provided
     if (days && Array.isArray(days)) {
       const dayDocuments = days.map(day => ({
-        journeyId: new mongoose.Types.ObjectId(journeyId),
-        userId: new mongoose.Types.ObjectId(userId),
+        journeyId: new ObjectId(journeyId),
+        userId: new ObjectId(userId),
         dayNumber: day.dayNumber,
         scriptText: day.scriptText || '',
         audioUrl: day.audioUrl || '',
@@ -70,7 +71,7 @@ export const handleJourneyComplete = async (req, res) => {
 
     // Get user data for email notification
     const user = await db.collection('users').findOne({
-      _id: new mongoose.Types.ObjectId(userId)
+      _id: new ObjectId(userId)
     });
 
     if (!user) {
@@ -79,7 +80,7 @@ export const handleJourneyComplete = async (req, res) => {
 
     // Get journey data for email
     const journey = await db.collection('journeys').findOne({
-      _id: new mongoose.Types.ObjectId(journeyId)
+      _id: new ObjectId(journeyId)
     });
 
     // Send completion email to user
@@ -122,11 +123,11 @@ export const handleJourneyError = async (req, res) => {
     logger.error(`N8N Webhook: Journey ${journeyId} error received:`, error);
 
     // Get database connection
-    const db = mongoose.connection.db;
+    const db = getMongoDb();
 
     // Update journey status to error
     await db.collection('journeys').updateOne(
-      { _id: new mongoose.Types.ObjectId(journeyId) },
+      { _id: new ObjectId(journeyId) },
       {
         $set: {
           status: 'error',
@@ -169,11 +170,11 @@ export const handleJourneyProgress = async (req, res) => {
     logger.info(`N8N Webhook: Journey ${journeyId} progress - Day ${currentDay}/${totalDays}`);
 
     // Get database connection
-    const db = mongoose.connection.db;
+    const db = getMongoDb();
 
     // Update journey progress
     await db.collection('journeys').updateOne(
-      { _id: new mongoose.Types.ObjectId(journeyId) },
+      { _id: new ObjectId(journeyId) },
       {
         $set: {
           currentDay: currentDay,
