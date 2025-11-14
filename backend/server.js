@@ -7,11 +7,12 @@ import app from './src/app.js';
 import { logger } from './src/utils/logger.js';
 
 const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0'; // Required for Railway
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Start server
-const server = app.listen(PORT, () => {
-  logger.info(`🚀 Server running in ${NODE_ENV} mode on port ${PORT}`);
+// Start server - bind to 0.0.0.0 for Railway
+const server = app.listen(PORT, HOST, () => {
+  logger.info(`🚀 Server running in ${NODE_ENV} mode on ${HOST}:${PORT}`);
   logger.info(`📝 API available at http://localhost:${PORT}`);
 });
 
