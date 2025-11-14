@@ -1,0 +1,735 @@
+{
+  "name": "Hypnotic Journey Script Generator with AI Analysis and Audio Production",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "36562d62-4188-49ac-aac7-4ba80c37a85b",
+        "options": {},
+        "responseMode": "responseNode",
+        "authentication": "headerAuth"
+      },
+      "id": "2882762f-65c3-44a1-940f-70a66c87747a",
+      "name": "Journey Creation Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [2896, 2544],
+      "webhookId": "36562d62-4188-49ac-aac7-4ba80c37a85b",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "n8n-api-key",
+          "name": "N8N API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "journeyId",
+              "value": "={{ $json.journeyId }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "userId",
+              "value": "={{ $json.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "goal",
+              "value": "={{ $json.goal }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "intention",
+              "value": "={{ $json.intention }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "duration",
+              "value": "={{ $json.duration || 15 }}",
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "userProfile",
+              "value": "={{ $json.userProfile }}",
+              "type": "object"
+            },
+            {
+              "id": "7",
+              "name": "userContext",
+              "value": "={{ $json.userContext || [] }}",
+              "type": "array"
+            },
+            {
+              "id": "8",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "29c9d408-1af2-4bb8-ba5e-64e6ef7e6b94",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [3120, 2544]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "journeys",
+        "fields": "journeyId,userId,goal,intention,duration,status,startedAt,userProfile,userContext",
+        "options": {}
+      },
+      "id": "ccb8c344-9c5b-48c4-953b-226838d4aae4",
+      "name": "Store Initial Data",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [3408, 2544],
+      "credentials": {
+        "mongoDb": {
+          "id": "bFdGyITy0UX9dYer",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "user-information"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "969cdbc8-6e53-45fa-8049-57670b0e70d5",
+      "name": "Search Pinecone - User Info",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [3696, 2240],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "core-hypnosis-knowledge"
+        },
+        "topK": 10,
+        "options": {}
+      },
+      "id": "ba35c187-7624-4246-90b6-f54c3fea1cb9",
+      "name": "Search Pinecone - Core Knowledge",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [3696, 2448],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "past-creations"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "d55beee7-09cd-49f3-b825-788696b67a22",
+      "name": "Search Pinecone - Past Creations",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [3696, 2656],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "interest-trends"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "5d9138f5-170c-401c-87e3-d46c86ea27da",
+      "name": "Search Pinecone - Trends",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [3696, 2864],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge Knowledge Sources - Combines knowledge base and online research results\n\nconst workflowConfig = $('Workflow Configuration').first().json;\nconst userInfoResults = $('Search Pinecone - User Info').all();\nconst coreKnowledgeResults = $('Search Pinecone - Core Knowledge').all();\nconst pastCreationsResults = $('Search Pinecone - Past Creations').all();\nconst trendsResults = $('Search Pinecone - Trends').all();\n\n// Format Pinecone results into readable text\nfunction formatPineconeResults(results, source) {\n  if (!results || results.length === 0) {\n    return `No ${source} data found.`;\n  }\n  \n  let formatted = `\\n=== ${source.toUpperCase()} ===\\n`;\n  \n  results.forEach((item, index) => {\n    const json = item.json;\n    formatted += `\\n[Result ${index + 1}]\\n`;\n    \n    if (json.metadata) {\n      Object.keys(json.metadata).forEach(key => {\n        formatted += `${key}: ${json.metadata[key]}\\n`;\n      });\n    }\n    \n    if (json.pageContent) {\n      formatted += `Content: ${json.pageContent}\\n`;\n    }\n    \n    if (json.score) {\n      formatted += `Relevance Score: ${json.score}\\n`;\n    }\n  });\n  \n  return formatted;\n}\n\n// Merge all knowledge sources\nconst mergedData = {\n  goal: workflowConfig.goal,\n  intention: workflowConfig.intention,\n  duration: workflowConfig.duration,\n  userProfile: workflowConfig.userProfile || {},\n  journeyId: workflowConfig.journeyId,\n  userId: workflowConfig.userId,\n  \n  // Formatted knowledge sources\n  userInfoResults: formatPineconeResults(userInfoResults, 'User Information'),\n  coreKnowledgeResults: formatPineconeResults(coreKnowledgeResults, 'Core Knowledge'),\n  pastCreationsResults: formatPineconeResults(pastCreationsResults, 'Past Creations'),\n  trendsResults: formatPineconeResults(trendsResults, 'Current Trends'),\n  \n  // Summary statistics\n  knowledgeSummary: {\n    userInfoCount: userInfoResults.length,\n    coreKnowledgeCount: coreKnowledgeResults.length,\n    pastCreationsCount: pastCreationsResults.length,\n    trendsCount: trendsResults.length,\n    totalSources: userInfoResults.length + coreKnowledgeResults.length + pastCreationsResults.length + trendsResults.length\n  },\n  \n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: mergedData }];"
+      },
+      "id": "d28c034f-1187-4525-806e-e976ba4c8841",
+      "name": "Merge Knowledge Sources",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3984, 2544]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop 7 Days Setup - Prepares iteration data for each day\n\nconst personalizedBlueprint = $json.personalizedBlueprint || {};\nconst days = personalizedBlueprint.days || [];\nconst currentIteration = $input.context?.currentIteration || 0;\n\nif (currentIteration >= 7) {\n  // All days complete\n  return [{\n    json: {\n      loopComplete: true,\n      totalDays: 7,\n      journeyId: $json.journeyId\n    }\n  }];\n}\n\nconst currentDay = currentIteration + 1;\nconst dayData = days[currentIteration] || {};\n\nreturn [{\n  json: {\n    currentDay: currentDay,\n    dayFocus: dayData.focus || '',\n    dayGoal: dayData.goal || '',\n    dayApproach: dayData.approach || '',\n    keyMessage: dayData.keyMessage || '',\n    duration: $json.duration || 15,\n    goal: $json.goal,\n    intention: $json.intention,\n    userProfile: $json.userProfile || {},\n    personalizedBlueprint: personalizedBlueprint,\n    journeyId: $json.journeyId,\n    userId: $json.userId,\n    loopComplete: false\n  }\n}];"
+      },
+      "id": "59c57d9d-bb06-42a5-8ab5-940adece34a1",
+      "name": "Loop 7 Days Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [8080, 3056]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge Audio Files - Combines voice and background audio\n\nconst voiceAudio = $('Generate Audio - ElevenLabs').first().json;\nconst backgroundAudio = $('Generate Background Sound').first().json;\nconst currentDay = $json.currentDay || 1;\nconst journeyId = $json.journeyId;\n\n// In production, this would use ffmpeg to merge audio files\n// For now, we'll simulate the merge\n\nconst mergedAudio = {\n  day: currentDay,\n  journeyId: journeyId,\n  voiceAudioUrl: voiceAudio.audioUrl || '',\n  backgroundAudioUrl: backgroundAudio.audioUrl || '',\n  mergedAudioPath: `/tmp/journey_${journeyId}_day${currentDay}_complete.mp3`,\n  duration: voiceAudio.duration || 900,\n  status: 'merged'\n};\n\n// Simulate ffmpeg merge command:\n// ffmpeg -i voice.mp3 -i background.mp3 -filter_complex \"[1:a]volume=0.2[bg];[0:a][bg]amix=inputs=2:duration=first\" output.mp3\n\nreturn [{ json: mergedAudio }];"
+      },
+      "id": "35318e36-e94e-49fe-afb3-34af471a84cf",
+      "name": "Merge Audio Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [6208, 2944]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check Loop Completion - Determines if all 7 days are complete\n\nconst currentDay = $json.currentDay || 1;\nconst totalDays = 7;\n\nif (currentDay >= totalDays) {\n  // All days complete - proceed to final steps\n  return [{\n    json: {\n      loopComplete: true,\n      totalDays: totalDays,\n      journeyId: $json.journeyId,\n      userId: $json.userId,\n      allDaysComplete: true\n    }\n  }];\n} else {\n  // More days to process - continue loop\n  return [{\n    json: {\n      loopComplete: false,\n      currentDay: currentDay,\n      nextDay: currentDay + 1,\n      journeyId: $json.journeyId,\n      userId: $json.userId,\n      continueLoop: true\n    }\n  }];\n}"
+      },
+      "id": "e583613a-a23e-4533-8e1b-921c64a65ff6",
+      "name": "Check Loop Completion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [7792, 2944]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/={{ $env.ELEVENLABS_VOICE_ID }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $env.ELEVENLABS_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.completeScript }}\",\n  \"model_id\": \"eleven_monolingual_v1\",\n  \"voice_settings\": {\n    \"stability\": 0.75,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.5,\n    \"use_speaker_boost\": true\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "973b12b8-f64c-4818-8300-0ab1286a1f6b",
+      "name": "Generate Audio - ElevenLabs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [5856, 3040]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.BACKGROUND_SOUND_URL || 'https://example.com/ambient-sound.mp3' }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "4b11af0b-6f08-43ec-901c-39ebfa0cfbed",
+      "name": "Generate Background Sound",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [5856, 2848]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.overallScore }}",
+              "operation": "largerEqual",
+              "value2": 8
+            }
+          ]
+        }
+      },
+      "id": "672cb665-b07c-4858-bf0d-f5e0651c8092",
+      "name": "Check Score >= 8",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [4848, 2944]
+    },
+    {
+      "parameters": {
+        "operation": "find",
+        "collection": "sections",
+        "query": "={\n  \"draftId\": \"{{ $json.draftId }}\",\n  \"day\": {{ $json.currentDay }}\n}",
+        "options": {}
+      },
+      "id": "893df6bf-6287-42bd-92b9-7a6f4bacbc98",
+      "name": "Retrieve Draft Sections",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [5568, 2944],
+      "credentials": {
+        "mongoDb": {
+          "id": "bFdGyITy0UX9dYer",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "sections",
+        "fields": "section,day,script,estimatedDuration,keyElements,draftId,journeyId",
+        "options": {}
+      },
+      "id": "3ab9aea9-7965-4aa4-a455-a7687a168965",
+      "name": "Store Draft Sections",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [3760, 2848],
+      "credentials": {
+        "mongoDb": {
+          "id": "bFdGyITy0UX9dYer",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "journeys",
+        "updateKey": "journeyId",
+        "fields": "status,completedAt,days,metadata",
+        "options": {}
+      },
+      "id": "cd1ffbc9-db66-418e-9b9e-06a3bbe1bfce",
+      "name": "Store Complete Journey",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [8080, 3264],
+      "credentials": {
+        "mongoDb": {
+          "id": "bFdGyITy0UX9dYer",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "past-creations"
+        },
+        "options": {}
+      },
+      "id": "c5d9e4b3-ddb6-4fb8-bd36-eb75948dd467",
+      "name": "Update Pinecone - Store Creation",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [8304, 3264],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/webhooks/n8n/journey-complete",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"journeyId\": \"{{ $json.journeyId }}\",\n  \"userId\": \"{{ $json.userId }}\",\n  \"status\": \"completed\",\n  \"days\": {{ $json.days }},\n  \"metadata\": {{ $json.metadata }}\n}",
+        "options": {}
+      },
+      "id": "bdfc4a7b-9840-4dc3-8585-753edb519a3c",
+      "name": "Send Webhook to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [8656, 3264]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "upload",
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "={{ $env.GOOGLE_DRIVE_FOLDER_ID }}"
+        },
+        "fileName": "=Journey_{{ $json.journeyId }}_Day{{ $json.currentDay }}.mp3",
+        "options": {}
+      },
+      "id": "7822cca8-2d3e-4b73-b9e0-69fc1eaaa689",
+      "name": "Save to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [7008, 2944],
+      "credentials": {
+        "googleApi": {
+          "id": "gz76eLuxI2eNCdNP",
+          "name": "Google Search API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "sendTo": "={{ $json.userEmail }}",
+        "subject": "Your 7-Day Hypnosis Journey is Ready! 🎉",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html>\n<html>\n<body style=\"font-family: Arial, sans-serif;\">\n  <div style=\"max-width: 600px; margin: 0 auto;\">\n    <div style=\"background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;\">\n      <h1>🎉 Your Journey is Ready!</h1>\n    </div>\n    <div style=\"padding: 30px; background: #f9fafb;\">\n      <p>Hi {{ $json.userName }},</p>\n      <p>Your personalized 7-day hypnosis journey for <strong>{{ $json.goal }}</strong> is now ready!</p>\n      <p style=\"text-align: center;\">\n        <a href=\"{{ $env.FRONTEND_URL }}/dashboard/journey/{{ $json.journeyId }}\" style=\"background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block;\">Start Your Journey</a>\n      </p>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "934b9723-2d40-4c6d-9068-17a944ea40cb",
+      "name": "Send Email to User",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [8880, 3264],
+      "credentials": {
+        "googleApi": {
+          "id": "gz76eLuxI2eNCdNP",
+          "name": "Google Search API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Journey Creation Request": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Store Initial Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Initial Data": {
+      "main": [
+        [
+          {
+            "node": "Search Pinecone - User Info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Pinecone - Core Knowledge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Pinecone - Past Creations",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Pinecone - Trends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Pinecone - User Info": {
+      "main": [
+        [
+          {
+            "node": "Merge Knowledge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Pinecone - Core Knowledge": {
+      "main": [
+        [
+          {
+            "node": "Merge Knowledge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Pinecone - Past Creations": {
+      "main": [
+        [
+          {
+            "node": "Merge Knowledge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Pinecone - Trends": {
+      "main": [
+        [
+          {
+            "node": "Merge Knowledge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Knowledge Sources": {
+      "main": [
+        [
+          {
+            "node": "Loop 7 Days Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop 7 Days Setup": {
+      "main": [
+        [
+          {
+            "node": "Store Draft Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Draft Sections": {
+      "main": [
+        [
+          {
+            "node": "Check Score >= 8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Score >= 8": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Draft Sections",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop 7 Days Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Draft Sections": {
+      "main": [
+        [
+          {
+            "node": "Generate Audio - ElevenLabs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Background Sound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio - ElevenLabs": {
+      "main": [
+        [
+          {
+            "node": "Merge Audio Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Background Sound": {
+      "main": [
+        [
+          {
+            "node": "Merge Audio Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Audio Files": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Check Loop Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Loop Completion": {
+      "main": [
+        [
+          {
+            "node": "Loop 7 Days Setup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Store Complete Journey",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Complete Journey": {
+      "main": [
+        [
+          {
+            "node": "Update Pinecone - Store Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Pinecone - Store Creation": {
+      "main": [
+        [
+          {
+            "node": "Send Webhook to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Webhook to Backend": {
+      "main": [
+        [
+          {
+            "node": "Send Email to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fixed-version-1.0",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "b4dab6bc82354797802e6d1ee2c1fe486aa8455b89929a584692526a2b575109"
+  },
+  "id": "XvxSYpF3QljgoLfr",
+  "tags": []
+}
+

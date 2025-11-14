@@ -1,0 +1,515 @@
+{
+  "name": "Hypnotic Journey Script Generator - FULLY CONNECTED",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "journey-create",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-start",
+      "name": "Journey Creation Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [500, 1100],
+      "webhookId": "journey-create-webhook"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {"id": "1", "name": "journeyId", "value": "={{ $json.body.journeyId }}", "type": "string"},
+            {"id": "2", "name": "userId", "value": "={{ $json.body.userId }}", "type": "string"},
+            {"id": "3", "name": "goal", "value": "={{ $json.body.goal }}", "type": "string"},
+            {"id": "4", "name": "intention", "value": "={{ $json.body.intention }}", "type": "string"},
+            {"id": "5", "name": "duration", "value": "={{ $json.body.duration || 15 }}", "type": "number"},
+            {"id": "6", "name": "userProfile", "value": "={{ JSON.stringify($json.body.userProfile) }}", "type": "string"},
+            {"id": "7", "name": "currentDay", "value": "1", "type": "number"},
+            {"id": "8", "name": "totalDays", "value": "7", "type": "number"}
+          ]
+        }
+      },
+      "id": "workflow-config",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [700, 1100]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "journeys",
+        "fields": "journeyId,userId,goal,intention,duration,status,createdAt",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "journeyId", "fieldValue": "={{ $json.journeyId }}"},
+            {"fieldId": "userId", "fieldValue": "={{ $json.userId }}"},
+            {"fieldId": "goal", "fieldValue": "={{ $json.goal }}"},
+            {"fieldId": "intention", "fieldValue": "={{ $json.intention }}"},
+            {"fieldId": "duration", "fieldValue": "={{ $json.duration }}"},
+            {"fieldId": "status", "fieldValue": "processing"},
+            {"fieldId": "createdAt", "fieldValue": "={{ $now }}"}
+          ]
+        }
+      },
+      "id": "store-data",
+      "name": "Store Data",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [900, 1100],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "1", "name": "searchQuery", "value": "={{ $json.goal + ' ' + $json.intention }}", "type": "string"}
+          ]
+        }
+      },
+      "id": "prepare-research",
+      "name": "Prepare Research Query",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1100, 900]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock Knowledge Base Search\nconst data = $input.first().json;\n\nreturn [{\n  json: {\n    ...data,\n    knowledgeBase: [\n      'Progressive relaxation technique',\n      'Visualization for goal achievement',\n      'Positive affirmations structure',\n      'Deep breathing patterns'\n    ],\n    coreKnowledge: 'Hypnosis works through focused attention and relaxation'\n  }\n}];"
+      },
+      "id": "knowledge-agent",
+      "name": "Knowledge Extraction Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 900]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock YouTube Research\nconst data = $input.first().json;\n\nreturn [{\n  json: {\n    ...data,\n    researchData: [\n      'Guided meditation techniques',\n      'Sleep hypnosis best practices',\n      'Positive suggestion frameworks'\n    ]\n  }\n}];"
+      },
+      "id": "research-agent",
+      "name": "Reverse Engineering Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 1100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge Knowledge Sources\nconst items = $input.all();\nconst merged = items.reduce((acc, item) => {\n  return { ...acc, ...item.json };\n}, {});\n\nreturn [{ json: merged }];"
+      },
+      "id": "merge-knowledge",
+      "name": "Merge Knowledge Sources",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate evaluation criteria\nconst data = $input.first().json;\n\nreturn [{\n  json: {\n    ...data,
+    evaluationCriteria: {\n      clarity: 'Script should be clear and easy to follow',\n      effectiveness: 'Suggestions should be compelling',\n      personalization: 'Should address user goals specifically',\n      flow: 'Smooth transitions between sections'\n    }\n  }\n}];"
+      },
+      "id": "rating-agent",
+      "name": "Rating & Evaluation Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1700, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate script suggestions\nconst data = $input.first().json;\n\nreturn [{\n  json: {\n    ...data,\n    scriptSuggestions: [\n      'Start with deep breathing',\n      'Use progressive muscle relaxation',\n      'Include vivid imagery',\n      'End with positive affirmations'\n    ]\n  }\n}];"
+      },
+      "id": "suggestions-agent",
+      "name": "Script Suggestions Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1900, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Define script elements\nconst data = $input.first().json;\nconst day = data.currentDay || 1;\n\nconst dayFocus = [\n  'Introduction & Foundation',\n  'Deepening Practice',\n  'Core Transformation',\n  'Integration',\n  'Expansion',\n  'Empowerment',\n  'Completion'\n][day - 1];\n\nreturn [{\n  json: {\n    ...data,\n    dayFocus: dayFocus,\n    scriptElements: {\n      intention: '2-3 minutes - Set intention and calibrate',\n      induction: '3-5 minutes - Progressive relaxation',\n      deepener: '2-3 minutes - Deepen the trance',\n      suggestions: `${data.duration - 10} minutes - Core suggestions`,\n      futurePacing: '2-3 minutes - Visualize success',\n      awakening: '1-2 minutes - Return to awareness'\n    }\n  }\n}];"
+      },
+      "id": "elements-agent",
+      "name": "Script Elements Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2100, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Add user personalization\nconst data = $input.first().json;\nlet profile = {};\n\ntry {\n  profile = typeof data.userProfile === 'string' \n    ? JSON.parse(data.userProfile) \n    : data.userProfile || {};\n} catch(e) {\n  profile = {};\n}\n\nreturn [{\n  json: {\n    ...data,\n    personalization: {\n      name: profile.name || 'friend',\n      timeOfDay: profile.timePreference || 'evening',\n      voiceStyle: 'calm and soothing',\n      pace: 'relaxed'\n    }\n  }\n}];"
+      },
+      "id": "personalization-agent",
+      "name": "User Personalization Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2300, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Initialize loop variables\nconst data = $input.first().json;\nconst currentDay = parseInt(data.currentDay) || 1;\n\nreturn [{\n  json: {\n    ...data,\n    currentDay: currentDay,\n    loopIteration: currentDay,\n    dayLabel: `Day ${currentDay} of 7`\n  }\n}];"
+      },
+      "id": "loop-setup",
+      "name": "Loop 7 Days Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2500, 1000]
+    },
+    {
+      "parameters": {
+        "model": {"__rl": true, "mode": "list", "value": "claude-sonnet-4-5-20250929"},
+        "text": "=Create a complete {{ $json.duration }}-minute hypnosis script for {{ $json.dayLabel }}.\n\n**USER'S GOAL:** {{ $json.goal }}\n**INTENTION:** {{ $json.intention }}\n**DAY FOCUS:** {{ $json.dayFocus }}\n\n**SCRIPT STRUCTURE:**\n1. Intention & Calibration (2-3 min) - {{ $json.scriptElements.intention }}\n2. Induction (3-5 min) - {{ $json.scriptElements.induction }}\n3. Deepener (2-3 min) - {{ $json.scriptElements.deepener }}\n4. Suggestions (remaining time) - {{ $json.scriptElements.suggestions }}\n5. Future Pacing (2-3 min) - {{ $json.scriptElements.futurePacing }}\n6. Awakening (1-2 min) - {{ $json.scriptElements.awakening }}\n\n**PERSONALIZATION:**\n- Address as: {{ $json.personalization.name }}\n- Time of day: {{ $json.personalization.timeOfDay }}\n- Voice style: {{ $json.personalization.voiceStyle }}\n- Pace: {{ $json.personalization.pace }}\n\n**GUIDELINES:**\n- Write in second person (\"you\")\n- Use sensory-rich language\n- Include pauses marked with [pause]\n- Make suggestions positive and specific\n- Build progressively on previous days\n- Total duration: exactly {{ $json.duration }} minutes\n\nReturn ONLY the complete script text, ready to be spoken.",
+        "options": {"temperature": 0.7, "maxTokens": 4000}
+      },
+      "id": "draft-creator",
+      "name": "Draft Creator Agent",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [2700, 1000],
+      "credentials": {"anthropicApi": {"id": "ioDtdmZPQuacxMIy", "name": "Anthropic account 2"}}
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "journey_drafts",
+        "fields": "journeyId,dayNumber,scriptText,createdAt",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "journeyId", "fieldValue": "={{ $json.journeyId }}"},
+            {"fieldId": "dayNumber", "fieldValue": "={{ $json.currentDay }}"},
+            {"fieldId": "scriptText", "fieldValue": "={{ $json.response }}"},
+            {"fieldId": "createdAt", "fieldValue": "={{ $now }}"}
+          ]
+        }
+      },
+      "id": "store-draft",
+      "name": "Store Draft Sections",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [2900, 1000],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Evaluate script quality\nconst data = $input.first().json;\nconst script = data.response || '';\n\n// Simple scoring based on length and keywords\nlet score = 5;\nif (script.length > 500) score += 1;\nif (script.length > 1000) score += 1;\nif (script.includes('[pause]')) score += 1;\nif (script.includes(data.goal)) score += 1;\nif (script.split('\\n').length > 10) score += 1;\n\nreturn [{\n  json: {\n    ...data,\n    evaluationScore: Math.min(score, 10),\n    scriptLength: script.length\n  }\n}];"
+      },
+      "id": "evaluator",
+      "name": "Evaluator Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3100, 900]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [],
+          "number": [
+            {
+              "value1": "={{ $json.evaluationScore }}",
+              "operation": "largerEqual",
+              "value2": 8
+            }
+          ]
+        }
+      },
+      "id": "check-score",
+      "name": "Check Score >= 8",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [3300, 900]
+    },
+    {
+      "parameters": {
+        "operation": "find",
+        "collection": "journey_drafts",
+        "query": "={{ JSON.stringify({ journeyId: $json.journeyId, dayNumber: $json.currentDay }) }}",
+        "options": {"limit": 1, "sort": "{\"createdAt\": -1}"}
+      },
+      "id": "retrieve-draft",
+      "name": "Retrieve Draft Sections",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [3500, 800],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/JBFqnCBsd6RMkjVDRZzb",
+        "sendQuery": true,
+        "queryParameters": {"parameters": [{"name": "output_format", "value": "mp3_44100_128"}]},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [{"name": "xi-api-key", "value": "={{ $env.ELEVENLABS_API_KEY }}"}]},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($json.scriptText) }},\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.75,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.5,\n    \"use_speaker_boost\": true\n  }\n}",
+        "options": {"response": {"response": {"responseFormat": "file"}}}
+      },
+      "id": "audio-gen",
+      "name": "Audio Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [3700, 800]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "file",
+        "operation": "upload",
+        "name": "=Journey_{{ $json.journeyId }}_Day{{ $json.currentDay }}.mp3",
+        "driveId": {"__rl": true, "mode": "list", "value": "My Drive"},
+        "folderId": {"__rl": true, "mode": "list", "value": "={{ $env.GOOGLE_DRIVE_FOLDER_ID }}"},
+        "binaryData": true,
+        "options": {}
+      },
+      "id": "save-drive",
+      "name": "Save to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [3900, 800],
+      "credentials": {"googleApi": {"id": "gz76eLuxI2eNCdNP", "name": "Google Search API"}}
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "journey_drafts",
+        "updateKey": "_id",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "audioUrl", "fieldValue": "={{ $json.webViewLink }}"},
+            {"fieldId": "status", "fieldValue": "completed"},
+            {"fieldId": "completedAt", "fieldValue": "={{ $now }}"}
+          ]
+        }
+      },
+      "id": "update-draft",
+      "name": "Update Draft with Audio",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [4100, 800],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [],
+          "number": [
+            {
+              "value1": "={{ $json.currentDay }}",
+              "operation": "smaller",
+              "value2": 7
+            }
+          ]
+        }
+      },
+      "id": "check-loop",
+      "name": "Check Loop Completion",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [4300, 800]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "1", "name": "currentDay", "value": "={{ $json.currentDay + 1 }}", "type": "number"}
+          ]
+        }
+      },
+      "id": "increment-day",
+      "name": "Increment Day Counter",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [4500, 700]
+    },
+    {
+      "parameters": {
+        "operation": "find",
+        "collection": "journey_drafts",
+        "query": "={{ JSON.stringify({ journeyId: $json.journeyId }) }}",
+        "options": {"sort": "{\"dayNumber\": 1}"}
+      },
+      "id": "gather-all-days",
+      "name": "Store Complete Journey",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [4500, 900],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "journeys",
+        "updateKey": "journeyId",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "status", "fieldValue": "completed"},
+            {"fieldId": "completedAt", "fieldValue": "={{ $now }}"},
+            {"fieldId": "totalDays", "fieldValue": "7"}
+          ]
+        }
+      },
+      "id": "update-journey",
+      "name": "Update Journey Status",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [4700, 900],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "message": "=🎉 Your 7-Day Hypnosis Journey is Complete!\n\nHi there,\n\nYour personalized journey for \"{{ $json.goal }}\" is now ready.\n\nAll 7 days have been generated with custom scripts and audio.\n\nStart listening at: {{ $env.FRONTEND_URL }}/journey/{{ $json.journeyId }}\n\nBest wishes on your transformation journey!",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Completion Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [4900, 900],
+      "credentials": {"gmailOAuth2": {"id": "gmailAccount", "name": "Gmail account"}}
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/webhooks/n8n/journey-complete",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Authorization", "value": "Bearer {{ $env.N8N_API_KEY }}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  journeyId: $json.journeyId,\n  userId: $json.userId,\n  status: 'completed',\n  completedAt: $now,\n  totalDays: 7\n}) }}",
+        "options": {}
+      },
+      "id": "notify-backend",
+      "name": "Notify Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [5100, 900]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Journey completed successfully', journeyId: $json.journeyId }) }}"
+      },
+      "id": "final-response",
+      "name": "Final Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [5300, 900]
+    }
+  ],
+  "connections": {
+    "Journey Creation Request": {
+      "main": [[{"node": "Workflow Configuration", "type": "main", "index": 0}]]
+    },
+    "Workflow Configuration": {
+      "main": [[{"node": "Store Data", "type": "main", "index": 0}]]
+    },
+    "Store Data": {
+      "main": [[
+        {"node": "Prepare Research Query", "type": "main", "index": 0},
+        {"node": "Reverse Engineering Agent", "type": "main", "index": 0}
+      ]]
+    },
+    "Prepare Research Query": {
+      "main": [[{"node": "Knowledge Extraction Agent", "type": "main", "index": 0}]]
+    },
+    "Knowledge Extraction Agent": {
+      "main": [[{"node": "Merge Knowledge Sources", "type": "main", "index": 0}]]
+    },
+    "Reverse Engineering Agent": {
+      "main": [[{"node": "Merge Knowledge Sources", "type": "main", "index": 1}]]
+    },
+    "Merge Knowledge Sources": {
+      "main": [[{"node": "Rating & Evaluation Agent", "type": "main", "index": 0}]]
+    },
+    "Rating & Evaluation Agent": {
+      "main": [[{"node": "Script Suggestions Agent", "type": "main", "index": 0}]]
+    },
+    "Script Suggestions Agent": {
+      "main": [[{"node": "Script Elements Agent", "type": "main", "index": 0}]]
+    },
+    "Script Elements Agent": {
+      "main": [[{"node": "User Personalization Agent", "type": "main", "index": 0}]]
+    },
+    "User Personalization Agent": {
+      "main": [[{"node": "Loop 7 Days Setup", "type": "main", "index": 0}]]
+    },
+    "Loop 7 Days Setup": {
+      "main": [[{"node": "Draft Creator Agent", "type": "main", "index": 0}]]
+    },
+    "Draft Creator Agent": {
+      "main": [[{"node": "Store Draft Sections", "type": "main", "index": 0}]]
+    },
+    "Store Draft Sections": {
+      "main": [[{"node": "Evaluator Agent", "type": "main", "index": 0}]]
+    },
+    "Evaluator Agent": {
+      "main": [[{"node": "Check Score >= 8", "type": "main", "index": 0}]]
+    },
+    "Check Score >= 8": {
+      "main": [
+        [{"node": "Retrieve Draft Sections", "type": "main", "index": 0}],
+        [{"node": "Draft Creator Agent", "type": "main", "index": 0}]
+      ]
+    },
+    "Retrieve Draft Sections": {
+      "main": [[{"node": "Audio Generation", "type": "main", "index": 0}]]
+    },
+    "Audio Generation": {
+      "main": [[{"node": "Save to Google Drive", "type": "main", "index": 0}]]
+    },
+    "Save to Google Drive": {
+      "main": [[{"node": "Update Draft with Audio", "type": "main", "index": 0}]]
+    },
+    "Update Draft with Audio": {
+      "main": [[{"node": "Check Loop Completion", "type": "main", "index": 0}]]
+    },
+    "Check Loop Completion": {
+      "main": [
+        [{"node": "Increment Day Counter", "type": "main", "index": 0}],
+        [{"node": "Store Complete Journey", "type": "main", "index": 0}]
+      ]
+    },
+    "Increment Day Counter": {
+      "main": [[{"node": "Loop 7 Days Setup", "type": "main", "index": 0}]]
+    },
+    "Store Complete Journey": {
+      "main": [[{"node": "Update Journey Status", "type": "main", "index": 0}]]
+    },
+    "Update Journey Status": {
+      "main": [[{"node": "Send Completion Email", "type": "main", "index": 0}]]
+    },
+    "Send Completion Email": {
+      "main": [[{"node": "Notify Backend", "type": "main", "index": 0}]]
+    },
+    "Notify Backend": {
+      "main": [[{"node": "Final Response", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York"
+  },
+  "versionId": "fully-connected-v1.0",
+  "meta": {"templateCredsSetupCompleted": false},
+  "id": "hypnosis-journey-full",
+  "tags": ["production", "hypnosis", "fully-connected"]
+}
+

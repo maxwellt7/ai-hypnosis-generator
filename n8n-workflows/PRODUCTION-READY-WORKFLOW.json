@@ -1,0 +1,265 @@
+{
+  "name": "Hypnotic Journey Script Generator - PRODUCTION READY",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "journey-create",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Journey Creation Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [500, 500],
+      "webhookId": "journey-create-webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"journeyId\": $json.journeyId, \"message\": \"Journey generation started\" } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [700, 500]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {"id": "1", "name": "journeyId", "value": "={{ $json.body.journeyId }}", "type": "string"},
+            {"id": "2", "name": "userId", "value": "={{ $json.body.userId }}", "type": "string"},
+            {"id": "3", "name": "goal", "value": "={{ $json.body.goal }}", "type": "string"},
+            {"id": "4", "name": "intention", "value": "={{ $json.body.intention }}", "type": "string"},
+            {"id": "5", "name": "duration", "value": "={{ $json.body.duration || 15 }}", "type": "number"},
+            {"id": "6", "name": "userProfile", "value": "={{ $json.body.userProfile }}", "type": "object"},
+            {"id": "7", "name": "userContext", "value": "={{ $json.body.userContext || [] }}", "type": "array"},
+            {"id": "8", "name": "timestamp", "value": "={{ $now }}", "type": "string"}
+          ]
+        }
+      },
+      "id": "workflow-config",
+      "name": "Extract Workflow Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [900, 500]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "journeys",
+        "fields": "journeyId,userId,goal,intention,duration,status,startedAt,userProfile",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "journeyId", "fieldValue": "={{ $json.journeyId }}"},
+            {"fieldId": "userId", "fieldValue": "={{ $json.userId }}"},
+            {"fieldId": "goal", "fieldValue": "={{ $json.goal }}"},
+            {"fieldId": "intention", "fieldValue": "={{ $json.intention }}"},
+            {"fieldId": "duration", "fieldValue": "={{ $json.duration }}"},
+            {"fieldId": "status", "fieldValue": "processing"},
+            {"fieldId": "startedAt", "fieldValue": "={{ $now }}"},
+            {"fieldId": "userProfile", "fieldValue": "={{ JSON.stringify($json.userProfile) }}"}
+          ]
+        }
+      },
+      "id": "store-initial",
+      "name": "Store Initial Journey",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [1100, 500],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock Knowledge for MVP (replace with real Pinecone later)\nconst workflowData = $input.first().json;\n\nreturn [{\n  json: {\n    journeyId: workflowData.journeyId,\n    userId: workflowData.userId,\n    goal: workflowData.goal,\n    intention: workflowData.intention,\n    duration: workflowData.duration,\n    userProfile: workflowData.userProfile,\n    // Mock knowledge data\n    userKnowledge: 'User prefers calming, gentle guidance',\n    coreKnowledge: 'Use progressive relaxation and visualization techniques',\n    pastCreations: 'Previous journeys showed success with nature metaphors',\n    trends: 'Mindfulness and body awareness are popular',\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "prepare-knowledge",
+      "name": "Prepare Knowledge",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate 7-Day Journey Blueprint\nconst data = $input.first().json;\n\nconst days = [\n  { day: 1, focus: 'Introduction & Foundation', goal: 'Establish trust and begin relaxation', approach: 'Gentle introduction' },\n  { day: 2, focus: 'Deepening Practice', goal: 'Deepen relaxation state', approach: 'Progressive deepening' },\n  { day: 3, focus: 'Core Transformation', goal: 'Begin core work on goal', approach: 'Targeted suggestions' },\n  { day: 4, focus: 'Integration', goal: 'Integrate new patterns', approach: 'Reinforce changes' },\n  { day: 5, focus: 'Expansion', goal: 'Expand positive changes', approach: 'Future pacing' },\n  { day: 6, focus: 'Empowerment', goal: 'Build self-efficacy', approach: 'Confidence building' },\n  { day: 7, focus: 'Completion & Continuation', goal: 'Complete cycle and set up continuation', approach: 'Closing and forward momentum' }\n];\n\nreturn [{\n  json: {\n    ...data,\n    blueprint: {\n      theme: `7-Day Journey: ${data.goal}`,\n      days: days\n    },\n    readyForScriptGeneration: true\n  }\n}];"
+      },
+      "id": "create-blueprint",
+      "name": "Create Journey Blueprint",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Initialize Day Loop\nconst data = $input.first().json;\nconst days = [];\n\nfor (let i = 1; i <= 7; i++) {\n  const dayData = data.blueprint.days[i-1];\n  days.push({\n    journeyId: data.journeyId,\n    userId: data.userId,\n    currentDay: i,\n    dayFocus: dayData.focus,\n    dayGoal: dayData.goal,\n    dayApproach: dayData.approach,\n    goal: data.goal,\n    intention: data.intention,\n    duration: data.duration,\n    userProfile: data.userProfile\n  });\n}\n\nreturn days.map(day => ({ json: day }));"
+      },
+      "id": "init-day-loop",
+      "name": "Initialize Day Loop",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1700, 500]
+    },
+    {
+      "parameters": {
+        "model": {"__rl": true, "mode": "list", "value": "claude-sonnet-4-5-20250929"},
+        "text": "=Create a complete {{ $json.duration }}-minute hypnosis script for Day {{ $json.currentDay }} of 7.\n\nUSER'S GOAL: {{ $json.goal }}\nINTENTION: {{ $json.intention }}\nDAY FOCUS: {{ $json.dayFocus }}\nDAY GOAL: {{ $json.dayGoal }}\n\nCreate a complete script with these sections:\n1. Intention & Calibration (2-3 min)\n2. Induction (3-5 min)\n3. Deepener (2-3 min)\n4. Suggestions/Main Content (remaining time)\n5. Future Pacing (2-3 min)\n6. Awakening (1-2 min)\n\nMake it warm, personal, and effective. Write in second person (\"you\"). Include sensory details.\n\nReturn ONLY the complete script text, ready to be spoken.",
+        "options": {"temperature": 0.7, "maxTokens": 4000}
+      },
+      "id": "generate-script",
+      "name": "Generate Day Script",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [1900, 500],
+      "credentials": {"anthropicApi": {"id": "ioDtdmZPQuacxMIy", "name": "Anthropic account 2"}}
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/JBFqnCBsd6RMkjVDRZzb",
+        "sendQuery": true,
+        "queryParameters": {"parameters": [{"name": "output_format", "value": "mp3_44100_128"}]},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [{"name": "xi-api-key", "value": "={{ $env.ELEVENLABS_API_KEY }}"}]},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($('Generate Day Script').item.json.response) }},\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.75,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.5,\n    \"use_speaker_boost\": true\n  }\n}",
+        "options": {"response": {"response": {"responseFormat": "file"}}}
+      },
+      "id": "generate-audio",
+      "name": "Generate Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [2100, 500]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "file",
+        "operation": "upload",
+        "name": "=Journey_{{ $json.journeyId }}_Day{{ $json.currentDay }}.mp3",
+        "driveId": {"__rl": true, "mode": "list", "value": "My Drive"},
+        "folderId": {"__rl": true, "mode": "list", "value": "={{ $env.GOOGLE_DRIVE_FOLDER_ID }}"},
+        "binaryData": true,
+        "options": {"googleFileConversion": {"conversion": {"doNotConvert": true}}}
+      },
+      "id": "upload-drive",
+      "name": "Upload to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2300, 500],
+      "credentials": {"googleApi": {"id": "gz76eLuxI2eNCdNP", "name": "Google Search API"}}
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "journey_days",
+        "fields": "journeyId,userId,dayNumber,scriptText,audioUrl,duration,createdAt",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "journeyId", "fieldValue": "={{ $json.journeyId }}"},
+            {"fieldId": "userId", "fieldValue": "={{ $json.userId }}"},
+            {"fieldId": "dayNumber", "fieldValue": "={{ $json.currentDay }}"},
+            {"fieldId": "scriptText", "fieldValue": "={{ $('Generate Day Script').item.json.response }}"},
+            {"fieldId": "audioUrl", "fieldValue": "={{ $json.webViewLink }}"},
+            {"fieldId": "duration", "fieldValue": "={{ $json.duration }}"},
+            {"fieldId": "createdAt", "fieldValue": "={{ $now }}"}
+          ]
+        }
+      },
+      "id": "store-day",
+      "name": "Store Day Data",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [2500, 500],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all days\nconst allDays = $input.all();\nconst journeyId = allDays[0].json.journeyId;\nconst userId = allDays[0].json.userId;\n\nconst days = allDays.map(item => ({\n  dayNumber: item.json.currentDay,\n  audioUrl: item.json.webViewLink || '',\n  scriptText: $('Generate Day Script').all()[item.json.currentDay - 1]?.json?.response || '',\n  duration: item.json.duration || 900\n}));\n\nreturn [{\n  json: {\n    journeyId: journeyId,\n    userId: userId,\n    days: days,\n    completedAt: new Date().toISOString(),\n    status: 'completed'\n  }\n}];"
+      },
+      "id": "aggregate-journey",
+      "name": "Aggregate Journey",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2700, 500]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "journeys",
+        "updateKey": "journeyId",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "status", "fieldValue": "completed"},
+            {"fieldId": "completedAt", "fieldValue": "={{ $json.completedAt }}"},
+            {"fieldId": "totalDays", "fieldValue": "7"}
+          ]
+        }
+      },
+      "id": "update-journey",
+      "name": "Update Journey Status",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [2900, 500],
+      "credentials": {"mongoDb": {"id": "bFdGyITy0UX9dYer", "name": "MongoDB account"}}
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/webhooks/n8n/journey-complete",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Authorization", "value": "Bearer {{ $env.N8N_API_KEY }}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "notify-backend",
+      "name": "Notify Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [3100, 500]
+    }
+  ],
+  "connections": {
+    "Journey Creation Request": {"main": [[{"node": "Webhook Response", "type": "main", "index": 0}]]},
+    "Webhook Response": {"main": [[{"node": "Extract Workflow Data", "type": "main", "index": 0}]]},
+    "Extract Workflow Data": {"main": [[{"node": "Store Initial Journey", "type": "main", "index": 0}]]},
+    "Store Initial Journey": {"main": [[{"node": "Prepare Knowledge", "type": "main", "index": 0}]]},
+    "Prepare Knowledge": {"main": [[{"node": "Create Journey Blueprint", "type": "main", "index": 0}]]},
+    "Create Journey Blueprint": {"main": [[{"node": "Initialize Day Loop", "type": "main", "index": 0}]]},
+    "Initialize Day Loop": {"main": [[{"node": "Generate Day Script", "type": "main", "index": 0}]]},
+    "Generate Day Script": {"main": [[{"node": "Generate Audio", "type": "main", "index": 0}]]},
+    "Generate Audio": {"main": [[{"node": "Upload to Drive", "type": "main", "index": 0}]]},
+    "Upload to Drive": {"main": [[{"node": "Store Day Data", "type": "main", "index": 0}]]},
+    "Store Day Data": {"main": [[{"node": "Aggregate Journey", "type": "main", "index": 0}]]},
+    "Aggregate Journey": {"main": [[{"node": "Update Journey Status", "type": "main", "index": 0}]]},
+    "Update Journey Status": {"main": [[{"node": "Notify Backend", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 3600
+  },
+  "versionId": "production-v1.0",
+  "meta": {"templateCredsSetupCompleted": false},
+  "id": "hypnosis-journey-prod",
+  "tags": ["production", "hypnosis", "journey-generator"]
+}
+

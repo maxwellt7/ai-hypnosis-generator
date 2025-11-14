@@ -1,0 +1,500 @@
+{
+  "name": "Hypnotic Journey Script Generator - COMPLETE FIXED",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "journey-create",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "2882762f-65c3-44a1-940f-70a66c87747a",
+      "name": "Journey Creation Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [3136, 1104],
+      "webhookId": "36562d62-4188-49ac-aac7-4ba80c37a85b",
+      "notes": "Webhook endpoint: /webhook/journey-create\nExpects: journeyId, userId, goal, intention, duration, userProfile"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "journeyId",
+              "value": "={{ $json.body.journeyId }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "userId",
+              "value": "={{ $json.body.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "goal",
+              "value": "={{ $json.body.goal }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "intention",
+              "value": "={{ $json.body.intention }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "duration",
+              "value": "={{ $json.body.duration || 15 }}",
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "userProfile",
+              "value": "={{ $json.body.userProfile }}",
+              "type": "object"
+            },
+            {
+              "id": "7",
+              "name": "userContext",
+              "value": "={{ $json.body.userContext || [] }}",
+              "type": "array"
+            },
+            {
+              "id": "8",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "29c9d408-1af2-4bb8-ba5e-64e6ef7e6b94",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [3600, 1104]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "journeys",
+        "fields": "journeyId,userId,goal,intention,duration,status,startedAt,userProfile,userContext",
+        "options": {}
+      },
+      "id": "1f450a3c-4660-466a-89a8-b0964d37bcab",
+      "name": "Store Initial Data",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [3872, 1104],
+      "credentials": {
+        "mongoDb": {
+          "id": "bFdGyITy0UX9dYer",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "user-information"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "969cdbc8-6e53-45fa-8049-57670b0e70d5",
+      "name": "Search Pinecone - User Info",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [4200, 920],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      },
+      "disabled": false
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "core-hypnosis-knowledge"
+        },
+        "topK": 10,
+        "options": {}
+      },
+      "id": "ba35c187-7624-4246-90b6-f54c3fea1cb9",
+      "name": "Search Pinecone - Core Knowledge",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [4200, 1080],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      },
+      "disabled": false
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "past-creations"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "d55beee7-09cd-49f3-b825-788696b67a22",
+      "name": "Search Pinecone - Past Creations",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [4200, 1240],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      },
+      "disabled": false
+    },
+    {
+      "parameters": {
+        "mode": "retrieve",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "interest-trends"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "id": "5d9138f5-170c-401c-87e3-d46c86ea27da",
+      "name": "Search Pinecone - Trends",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [4200, 1400],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      },
+      "disabled": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge Knowledge Sources\nconst workflowConfig = $('Workflow Configuration').first().json;\nconst userInfoResults = $('Search Pinecone - User Info').all();\nconst coreKnowledgeResults = $('Search Pinecone - Core Knowledge').all();\nconst pastCreationsResults = $('Search Pinecone - Past Creations').all();\nconst trendsResults = $('Search Pinecone - Trends').all();\nconst youtubeAnalysis = $('Reverse Engineering Agent').all();\n\nfunction formatPineconeResults(results, source) {\n  if (!results || results.length === 0) {\n    return `No ${source} data found. Using general hypnosis best practices.`;\n  }\n  let formatted = `\\n=== ${source.toUpperCase()} ===\\n`;\n  results.forEach((item, index) => {\n    const json = item.json;\n    formatted += `\\n[Result ${index + 1}]\\n`;\n    if (json.metadata) {\n      Object.keys(json.metadata).forEach(key => {\n        formatted += `${key}: ${json.metadata[key]}\\n`;\n      });\n    }\n    if (json.pageContent) formatted += `Content: ${json.pageContent}\\n`;\n    if (json.score) formatted += `Relevance Score: ${json.score}\\n`;\n  });\n  return formatted;\n}\n\nfunction formatYouTubeAnalysis(results) {\n  if (!results || results.length === 0) {\n    return 'No YouTube analysis available.';\n  }\n  let formatted = '\\n=== YOUTUBE RESEARCH ===\\n';\n  results.forEach((item, index) => {\n    formatted += `\\n[Video ${index + 1}]\\n`;\n    formatted += `Analysis: ${JSON.stringify(item.json, null, 2)}\\n`;\n  });\n  return formatted;\n}\n\nconst mergedData = {\n  journeyId: workflowConfig.journeyId,\n  userId: workflowConfig.userId,\n  goal: workflowConfig.goal,\n  intention: workflowConfig.intention,\n  duration: workflowConfig.duration,\n  userProfile: workflowConfig.userProfile || {},\n  userContext: workflowConfig.userContext || [],\n  userInfoResults: formatPineconeResults(userInfoResults, 'User Information'),\n  coreKnowledgeResults: formatPineconeResults(coreKnowledgeResults, 'Core Knowledge'),\n  pastCreationsResults: formatPineconeResults(pastCreationsResults, 'Past Creations'),\n  trendsResults: formatPineconeResults(trendsResults, 'Current Trends'),\n  youtubeResearch: formatYouTubeAnalysis(youtubeAnalysis),\n  knowledgeSummary: {\n    userInfoCount: userInfoResults.length,\n    coreKnowledgeCount: coreKnowledgeResults.length,\n    pastCreationsCount: pastCreationsResults.length,\n    trendsCount: trendsResults.length,\n    youtubeCount: youtubeAnalysis.length,\n    totalSources: userInfoResults.length + coreKnowledgeResults.length + pastCreationsResults.length + trendsResults.length + youtubeAnalysis.length\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: mergedData }];"
+      },
+      "id": "d28c034f-1187-4525-806e-e976ba4c8841",
+      "name": "Merge Knowledge Sources",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [5600, 1200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop 7 Days Setup\nconst scriptBlueprint = $json.scriptBlueprint || {};\nconst days = scriptBlueprint.days || [];\n\n// Get current iteration from context or start at 0\nlet currentIteration = 0;\nif ($execution.customData && $execution.customData.dayIteration !== undefined) {\n  currentIteration = $execution.customData.dayIteration;\n}\n\nif (currentIteration >= 7) {\n  return [{\n    json: {\n      loopComplete: true,\n      totalDays: 7,\n      journeyId: $json.journeyId,\n      userId: $json.userId,\n      allDaysComplete: true\n    }\n  }];\n}\n\nconst currentDay = currentIteration + 1;\nconst dayData = days[currentIteration] || {\n  focus: `Day ${currentDay} - Core Focus`,\n  goal: `Progress toward ${$json.goal}`,\n  approach: 'Gentle and progressive',\n  keyMessage: 'You are making positive changes'\n};\n\n// Store iteration state\nif (!$execution.customData) {\n  $execution.customData = {};\n}\n$execution.customData.dayIteration = currentIteration + 1;\n\nreturn [{\n  json: {\n    journeyId: $json.journeyId,\n    userId: $json.userId,\n    currentDay: currentDay,\n    dayFocus: dayData.focus,\n    dayGoal: dayData.goal,\n    dayApproach: dayData.approach,\n    keyMessage: dayData.keyMessage,\n    duration: $json.duration || 15,\n    goal: $json.goal,\n    intention: $json.intention,\n    userProfile: $json.userProfile || {},\n    personalizedBlueprint: $json.personalizedBlueprint || scriptBlueprint,\n    loopComplete: false\n  }\n}];"
+      },
+      "id": "59c57d9d-bb06-42a5-8ab5-940adece34a1",
+      "name": "Loop 7 Days Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [8800, 1200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge Audio Files (Simplified for production)\nconst voiceAudio = $('Voice Generation').first();\nconst backgroundAudio = $('Audio Generation').first();\nconst currentDay = $json.currentDay || 1;\nconst journeyId = $json.journeyId;\n\n// For production, we'll return both audio references\n// Actual merging can be done by backend or audio processing service\n\nreturn [{\n  json: {\n    day: currentDay,\n    journeyId: journeyId,\n    voiceAudioUrl: voiceAudio?.json?.audio_url || '',\n    backgroundAudioUrl: backgroundAudio?.json?.audio_url || '',\n    completeScript: $json.completeScript || '',\n    duration: $json.totalDuration || 900,\n    status: 'ready',\n    mergeNote: 'Audio files ready for merging by backend service'\n  }\n}];"
+      },
+      "id": "35318e36-e94e-49fe-afb3-34af471a84cf",
+      "name": "Merge Audio Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [10000, 1200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check Loop Completion\nconst currentDay = $json.day || $json.currentDay || 1;\nconst totalDays = 7;\nconst journeyId = $json.journeyId;\nconst userId = $json.userId;\n\n// Check if this is the last day\nif (currentDay >= totalDays) {\n  console.log(`Journey ${journeyId}: All ${totalDays} days complete`);\n  \n  // Gather all days data\n  const allDays = [];\n  for (let i = 1; i <= totalDays; i++) {\n    allDays.push({\n      dayNumber: i,\n      audioUrl: $json[`day${i}AudioUrl`] || '',\n      scriptText: $json[`day${i}Script`] || '',\n      duration: $json[`day${i}Duration`] || 900\n    });\n  }\n  \n  return [{\n    json: {\n      loopComplete: true,\n      totalDays: totalDays,\n      journeyId: journeyId,\n      userId: userId,\n      allDaysComplete: true,\n      completedAt: new Date().toISOString(),\n      days: allDays\n    }\n  }];\n  \n} else {\n  console.log(`Journey ${journeyId}: Day ${currentDay} complete, continuing to day ${currentDay + 1}`);\n  \n  return [{\n    json: {\n      loopComplete: false,\n      currentDay: currentDay,\n      nextDay: currentDay + 1,\n      journeyId: journeyId,\n      userId: userId,\n      continueLoop: true\n    }\n  }];\n}"
+      },
+      "id": "e583613a-a23e-4533-8e1b-921c64a65ff6",
+      "name": "Check Loop Completion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [10600, 1200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.overallScore }}",
+              "operation": "largerEqual",
+              "value2": 8
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "672cb665-b07c-4858-bf0d-f5e0651c8092",
+      "name": "Check Score >= 8",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [8400, 1200]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "past-creations"
+        },
+        "text": "={{ $json.goal + ' - ' + $json.intention + '. 7-day hypnosis journey created.' }}",
+        "options": {}
+      },
+      "id": "c5d9e4b3-ddb6-4fb8-bd36-eb75948dd467",
+      "name": "Update Pinecone - Store Creation",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [11200, 1200],
+      "credentials": {
+        "pineconeApi": {
+          "id": "dqeTM6ovzfLNvmSD",
+          "name": "AI Agents"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/webhooks/n8n/journey-complete",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"journeyId\": \"{{ $json.journeyId }}\",\n  \"userId\": \"{{ $json.userId }}\",\n  \"status\": \"completed\",\n  \"days\": {{ JSON.stringify($json.days) }},\n  \"completedAt\": \"{{ $json.completedAt }}\"\n}",
+        "options": {}
+      },
+      "id": "bdfc4a7b-9840-4dc3-8585-753edb519a3c",
+      "name": "Send Webhook to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [11600, 1200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/{{ $env.ELEVENLABS_VOICE_ID }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "output_format",
+              "value": "mp3_44100_128"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $env.ELEVENLABS_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.completeScript || 'Welcome to your hypnosis journey.' }}\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.75,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.5,\n    \"use_speaker_boost\": true\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "d3231b85-cbf4-4020-a5f4-698824cd2d85",
+      "name": "Voice Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [9400, 1100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/sound-generation",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $env.ELEVENLABS_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"Peaceful ambient meditation background music with gentle nature sounds\",\n  \"duration_seconds\": {{ $json.duration * 60 }},\n  \"prompt_influence\": 0.3\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "1c91c62d-39c6-4b9c-b82e-54afb41645db",
+      "name": "Audio Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [9400, 1300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "file",
+        "operation": "upload",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "={{ $env.GOOGLE_DRIVE_FOLDER_ID }}",
+          "cachedResultName": "Hypnosis Journeys"
+        },
+        "name": "=Journey_{{ $json.journeyId }}_Day{{ $json.day }}.mp3",
+        "binaryData": true,
+        "options": {}
+      },
+      "id": "7822cca8-2d3e-4b73-b9e0-69fc1eaaa689",
+      "name": "Save to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [10300, 1200],
+      "credentials": {
+        "googleApi": {
+          "id": "gz76eLuxI2eNCdNP",
+          "name": "Google Search API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Journey Creation Request": {
+      "main": [[{"node": "Workflow Configuration", "type": "main", "index": 0}]]
+    },
+    "Workflow Configuration": {
+      "main": [[{"node": "Store Initial Data", "type": "main", "index": 0}]]
+    },
+    "Store Initial Data": {
+      "main": [[
+        {"node": "Search Pinecone - User Info", "type": "main", "index": 0},
+        {"node": "Search Pinecone - Core Knowledge", "type": "main", "index": 0},
+        {"node": "Search Pinecone - Past Creations", "type": "main", "index": 0},
+        {"node": "Search Pinecone - Trends", "type": "main", "index": 0}
+      ]]
+    },
+    "Search Pinecone - User Info": {
+      "main": [[{"node": "Merge Knowledge Sources", "type": "main", "index": 0}]]
+    },
+    "Search Pinecone - Core Knowledge": {
+      "main": [[{"node": "Merge Knowledge Sources", "type": "main", "index": 0}]]
+    },
+    "Search Pinecone - Past Creations": {
+      "main": [[{"node": "Merge Knowledge Sources", "type": "main", "index": 0}]]
+    },
+    "Search Pinecone - Trends": {
+      "main": [[{"node": "Merge Knowledge Sources", "type": "main", "index": 0}]]
+    },
+    "Merge Knowledge Sources": {
+      "main": [[{"node": "Loop 7 Days Setup", "type": "main", "index": 0}]]
+    },
+    "Loop 7 Days Setup": {
+      "main": [[{"node": "Check Score >= 8", "type": "main", "index": 0}]]
+    },
+    "Check Score >= 8": {
+      "main": [
+        [{"node": "Voice Generation", "type": "main", "index": 0}, {"node": "Audio Generation", "type": "main", "index": 0}],
+        [{"node": "Loop 7 Days Setup", "type": "main", "index": 0}]
+      ]
+    },
+    "Voice Generation": {
+      "main": [[{"node": "Merge Audio Files", "type": "main", "index": 0}]]
+    },
+    "Audio Generation": {
+      "main": [[{"node": "Merge Audio Files", "type": "main", "index": 0}]]
+    },
+    "Merge Audio Files": {
+      "main": [[{"node": "Save to Google Drive", "type": "main", "index": 0}]]
+    },
+    "Save to Google Drive": {
+      "main": [[{"node": "Check Loop Completion", "type": "main", "index": 0}]]
+    },
+    "Check Loop Completion": {
+      "main": [
+        [{"node": "Loop 7 Days Setup", "type": "main", "index": 0}],
+        [{"node": "Update Pinecone - Store Creation", "type": "main", "index": 0}]
+      ]
+    },
+    "Update Pinecone - Store Creation": {
+      "main": [[{"node": "Send Webhook to Backend", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "versionId": "complete-fixed-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "hypnotic-journey-complete",
+  "tags": ["production", "hypnosis", "ai-journey"]
+}
+
