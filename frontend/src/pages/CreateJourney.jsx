@@ -5,16 +5,30 @@ import { useJourneyStore } from '../store/journeyStore';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { subscriptionService } from '../services/subscription.service';
 
 export default function CreateJourney() {
   const navigate = useNavigate();
   const { createJourney } = useJourneyStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [formData, setFormData] = useState({
     goal: '',
     intention: '',
     duration: 15,
   });
+
+  const handleCheckout = async () => {
+    setCheckoutLoading(true);
+    try {
+      const url = await subscriptionService.startCheckout();
+      window.location.href = url;
+    } catch {
+      toast.error('Failed to start checkout. Please try again.');
+      setCheckoutLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +39,11 @@ export default function CreateJourney() {
       toast.success('Journey creation started!');
       navigate(`/journey/${journey.id}/creating`);
     } catch (error) {
+      if (error.status === 402) {
+        setShowPaywall(true);
+        setIsLoading(false);
+        return;
+      }
       toast.error(error.message);
       setIsLoading(false);
     }
@@ -101,6 +120,38 @@ export default function CreateJourney() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Subscription paywall modal */}
+        {showPaywall && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle>Unlock Unlimited Journeys</CardTitle>
+                <p className="text-sm text-gray-500">You've used your free journey. Subscribe to continue your transformation.</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center py-2">
+                  <p className="text-3xl font-bold">$29<span className="text-base font-normal text-gray-500">/month</span></p>
+                  <p className="text-sm text-gray-500 mt-1">Unlimited journeys · Cancel anytime</p>
+                </div>
+                <ul className="text-sm space-y-1 text-gray-600">
+                  <li>✓ Unlimited personalized 7-day journeys</li>
+                  <li>✓ AI-generated hypnotic audio sessions</li>
+                  <li>✓ Progress tracking & analytics</li>
+                </ul>
+                <Button className="w-full" onClick={handleCheckout} disabled={checkoutLoading}>
+                  {checkoutLoading ? 'Redirecting to checkout…' : 'Subscribe — $29/mo'}
+                </Button>
+                <button
+                  className="w-full text-sm text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowPaywall(false)}
+                >
+                  Maybe later
+                </button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

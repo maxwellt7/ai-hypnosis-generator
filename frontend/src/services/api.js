@@ -32,21 +32,22 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response) {
-      // Server responded with error
-      const message = error.response.data?.message || 'An error occurred';
-      
-      // Handle 401 - unauthorized
-      if (error.response.status === 401) {
+      const { status, data } = error.response;
+      const message = data?.message || data?.error || 'An error occurred';
+
+      if (status === 401) {
         localStorage.removeItem('token');
         window.location.href = '/login';
       }
-      
-      return Promise.reject(new Error(message));
+
+      // Attach status and raw data so callers can branch on specific codes
+      const err = new Error(message);
+      err.status = status;
+      err.data = data;
+      return Promise.reject(err);
     } else if (error.request) {
-      // Request made but no response
       return Promise.reject(new Error('Network error. Please check your connection.'));
     } else {
-      // Something else happened
       return Promise.reject(error);
     }
   }

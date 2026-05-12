@@ -16,6 +16,7 @@ import JourneyDetail from './pages/JourneyDetail';
 import Profile from './pages/Profile';
 import Stats from './pages/Stats';
 import Settings from './pages/Settings';
+import Billing from './pages/Billing';
 
 // Protected Route Component
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -115,6 +116,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/billing"
+          element={
+            <ProtectedRoute>
+              <Billing />
             </ProtectedRoute>
           }
         />
