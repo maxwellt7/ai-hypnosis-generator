@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/auth.middleware.js';
 import { journeyCreationLimiter } from '../middleware/rateLimit.middleware.js';
 import { validate } from '../middleware/validation.middleware.js';
 import { createJourneySchema } from '../validators/journey.validator.js';
+import { requireSubscription } from '../middleware/requireSubscription.middleware.js';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 router.use(authenticate);
 
 // Journey CRUD
-router.post('/', journeyCreationLimiter, validate(createJourneySchema), journeyController.create);
+router.post('/', journeyCreationLimiter, requireSubscription, validate(createJourneySchema), journeyController.create);
 router.get('/', journeyController.list);
 router.get('/:id', journeyController.get);
 router.delete('/:id', journeyController.delete);
