@@ -15,6 +15,7 @@ import adminRoutes from './routes/admin.routes.js';
 import n8nWebhookRoutes from './routes/n8n-webhook.routes.js';
 import provisionRoutes from './routes/provision.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
+import scheduledRoutes from './routes/scheduled.routes.js';
 import { subscriptionController } from './controllers/subscription.controller.js';
 
 const app = express();
@@ -74,6 +75,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/webhooks/n8n', n8nWebhookRoutes);
 app.use('/api/provision-access', provisionRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/scheduled', scheduledRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

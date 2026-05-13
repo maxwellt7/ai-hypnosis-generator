@@ -1,0 +1,169 @@
+{
+  "name": "Sacred Heart — Engagement Email Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-daily-reminders",
+      "name": "Every Hour (Daily Reminders)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 160]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/scheduled/daily-reminders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-scheduled-secret",
+              "value": "={{ $env.SCHEDULED_JOBS_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-daily-reminders",
+      "name": "POST /scheduled/daily-reminders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 160]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-streak-at-risk",
+      "name": "Every Hour (Streak At-Risk)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 340]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/scheduled/streak-at-risk",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-scheduled-secret",
+              "value": "={{ $env.SCHEDULED_JOBS_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-streak-at-risk",
+      "name": "POST /scheduled/streak-at-risk",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 340]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "schedule-re-engagement",
+      "name": "Daily (Re-Engagement)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 520]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BACKEND_URL }}/api/scheduled/re-engagement",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-scheduled-secret",
+              "value": "={{ $env.SCHEDULED_JOBS_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-re-engagement",
+      "name": "POST /scheduled/re-engagement",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 520]
+    }
+  ],
+  "connections": {
+    "Every Hour (Daily Reminders)": {
+      "main": [
+        [
+          {
+            "node": "POST /scheduled/daily-reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Hour (Streak At-Risk)": {
+      "main": [
+        [
+          {
+            "node": "POST /scheduled/streak-at-risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily (Re-Engagement)": {
+      "main": [
+        [
+          {
+            "node": "POST /scheduled/re-engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateId": "sacred-heart-engagement-emails"
+  },
+  "tags": ["sacred-heart", "emails", "engagement", "scheduled"]
+}

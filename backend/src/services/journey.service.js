@@ -269,6 +269,14 @@ export class JourneyService {
         })
         .eq('user_id', userId);
 
+      // Trigger milestone email if streak just crossed 7, 14, or 30
+      const milestones = [7, 14, 30];
+      if (milestones.includes(newStreak) && newStreak !== stats.current_streak) {
+        this.sendStreakMilestoneEmail(userId, newStreak).catch(err =>
+          logger.error('Failed to send streak milestone email:', err)
+        );
+      }
+
       logger.info(`Stats updated for user: ${userId}`);
     } catch (error) {
       logger.error('Error updating user stats:', error);
@@ -326,6 +334,21 @@ export class JourneyService {
       logger.error('Error checking journey completion:', error);
       return false;
     }
+  }
+
+  async sendStreakMilestoneEmail(userId, streak) {
+    const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+    const email = authUser?.user?.email;
+    if (!email) return;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, full_name')
+      .eq('user_id', userId)
+      .single();
+
+    const name = profile?.name || profile?.full_name || email.split('@')[0];
+    await emailService.sendStreakMilestoneEmail(email, { name, streak });
   }
 
   async sendCompletionEmail(journeyId, userId, goal) {

@@ -6,6 +6,9 @@ export const updateProfileSchema = Joi.object({
   phone: Joi.string().optional().allow(''),
   preference_time_of_day: Joi.string().valid(...Object.values(TIME_OF_DAY)).optional(),
   preference_duration: Joi.number().valid(...DURATION_OPTIONS).optional(),
+  reminder_enabled: Joi.boolean().optional(),
+  reminder_time: Joi.string().pattern(/^\d{2}:\d{2}(:\d{2})?$/).optional().allow(null),
+  reminder_timezone: Joi.string().max(100).optional(),
 });
 
 export const onboardingSchema = Joi.object({

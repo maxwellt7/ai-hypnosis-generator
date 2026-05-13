@@ -127,6 +127,156 @@ export class EmailService {
     });
   }
 
+  async sendStreakAtRiskEmail(to, data) {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+          .streak { font-size: 28px; font-weight: bold; color: #f59e0b; text-align: center; display: block; margin: 12px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>⚠️ Don't Break Your Streak, ${data.name}!</h2>
+          </div>
+          <div class="content">
+            <p>Hi ${data.name},</p>
+            <p>You've been showing up every day and your streak is looking incredible:</p>
+            <span class="streak">🔥 ${data.streak} days and counting</span>
+            <p>It's almost the end of the day and we haven't seen you check in yet. Take just a few minutes to protect what you've built.</p>
+            <p style="text-align: center;">
+              <a href="${process.env.FRONTEND_URL}/dashboard" class="button">Listen Now — Protect Your Streak</a>
+            </p>
+            <p>Every day you show up is a vote for the person you're becoming. Don't let today be the day the chain breaks.</p>
+            <p>We're rooting for you,<br>The Sacred Heart Team</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to,
+      subject: `⚠️ Your ${data.streak}-day streak is at risk today, ${data.name}`,
+      html,
+    });
+  }
+
+  async sendStreakMilestoneEmail(to, data) {
+    const milestoneMessages = {
+      7: { emoji: '🌱', title: 'One Week Strong!', message: 'Seven consecutive days of showing up for yourself. That\'s not a fluke — that\'s a practice. The neural pathways you\'ve been building are becoming highways.' },
+      14: { emoji: '🌿', title: 'Two Weeks of Transformation!', message: 'Fourteen days. Science says habits begin to solidify around day 14. You\'re right at the threshold — keep going and this becomes who you are.' },
+      30: { emoji: '🌳', title: '30 Days — You\'re Unstoppable!', message: 'A full month of daily practice. Very few people ever reach this milestone. You haven\'t just built a habit; you\'ve built a new identity.' },
+    };
+
+    const milestone = milestoneMessages[data.streak] || {
+      emoji: '⭐',
+      title: `${data.streak}-Day Milestone!`,
+      message: `${data.streak} days of consistent practice. Every single day has counted.`,
+    };
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .milestone { font-size: 64px; text-align: center; margin: 10px 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+          .badge { background: white; border: 2px solid #667eea; border-radius: 12px; padding: 16px 24px; text-align: center; margin: 20px 0; }
+          .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="milestone">${milestone.emoji}</div>
+            <h1>${milestone.title}</h1>
+          </div>
+          <div class="content">
+            <p>Hi ${data.name},</p>
+            <div class="badge">
+              <strong>🔥 ${data.streak}-Day Streak Achieved</strong>
+            </div>
+            <p>${milestone.message}</p>
+            <p>Keep the momentum going — your next session is waiting:</p>
+            <p style="text-align: center;">
+              <a href="${process.env.FRONTEND_URL}/dashboard" class="button">Continue Your Journey</a>
+            </p>
+            <p>Proud of you,<br>The Sacred Heart Team</p>
+          </div>
+          <div class="footer">
+            <p>Questions? Reply to this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to,
+      subject: `${milestone.emoji} ${data.streak}-Day Milestone — ${milestone.title}`,
+      html,
+    });
+  }
+
+  async sendReEngagementEmail(to, data) {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+          .quote { background: white; border-left: 4px solid #764ba2; padding: 16px 20px; margin: 16px 0; border-radius: 0 6px 6px 0; font-style: italic; }
+          .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💜 We Miss You, ${data.name}</h1>
+          </div>
+          <div class="content">
+            <p>Hi ${data.name},</p>
+            <p>It's been a few days since your last session, and we wanted to check in.</p>
+            <p>Life gets busy — we get it. But the transformation you started is still waiting for you, exactly where you left it.</p>
+            <div class="quote">"The secret of getting ahead is getting started. The secret of getting started is breaking your complex, overwhelming tasks into small, manageable tasks, and then starting on the first one."</div>
+            <p>You don't need to catch up. You just need to start again — right now, with today's session.</p>
+            <p style="text-align: center;">
+              <a href="${process.env.FRONTEND_URL}/dashboard" class="button">Return to Your Journey</a>
+            </p>
+            <p>Your mind remembers the work you've done. Every session builds on the last, even after a break.</p>
+            <p>We're here whenever you're ready,<br>The Sacred Heart Team</p>
+          </div>
+          <div class="footer">
+            <p>Don't want these emails? <a href="${process.env.FRONTEND_URL}/settings">Update your preferences</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to,
+      subject: `💜 We miss you, ${data.name} — your journey is waiting`,
+      html,
+    });
+  }
+
   async sendJourneyCompletionEmail(to, data) {
     const nextJourneyUrl = `${process.env.FRONTEND_URL}/create-journey?from_journey=${data.journeyId}`;
     const html = `
