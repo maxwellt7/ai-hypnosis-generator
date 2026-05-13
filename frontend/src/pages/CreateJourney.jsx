@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useJourneyStore } from '../store/journeyStore';
 import { Button } from '../components/ui/button';
@@ -9,6 +9,8 @@ import { subscriptionService } from '../services/subscription.service';
 
 export default function CreateJourney() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isNewSubscriber = searchParams.get('welcome') === 'true';
   const { createJourney } = useJourneyStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -52,6 +54,12 @@ export default function CreateJourney() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-6">
       <div className="container mx-auto max-w-2xl">
+        {isNewSubscriber && (
+          <div className="mb-6 rounded-lg bg-green-50 border border-green-200 px-5 py-4">
+            <p className="text-green-800 font-semibold text-sm">Payment confirmed — welcome to Sacred Heart!</p>
+            <p className="text-green-700 text-sm mt-1">Create your first 7-day hypnosis journey below to get started.</p>
+          </div>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Create Your 7-Day Journey</CardTitle>

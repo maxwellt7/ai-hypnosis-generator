@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { subscriptionService } from '../services/subscription.service';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -15,17 +15,18 @@ const STATUS_LABELS = {
 
 export default function Billing() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('checkout') === 'success') {
-      toast.success('Subscription activated! Welcome to Sacred Heart.');
+      navigate('/create-journey?welcome=true', { replace: true });
     } else if (searchParams.get('checkout') === 'cancelled') {
       toast.info('Checkout cancelled. No charge was made.');
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     subscriptionService.getStatus()
