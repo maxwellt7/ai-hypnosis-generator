@@ -30,6 +30,36 @@ async function updateSubscriptionFields(customerId, fields) {
     .eq('stripe_customer_id', customerId);
 }
 
+// Fetches the most recent Stripe subscription for a user and syncs it to the DB.
+// Only called when subscription_status is null (webhook may have been missed).
+export async function syncSubscriptionFromStripe(userId) {
+  const stripe = getStripe();
+  const user = await getUserSubscription(userId);
+  if (!user?.stripe_customer_id) return null;
+
+  try {
+    const { data: subscriptions } = await stripe.subscriptions.list({
+      customer: user.stripe_customer_id,
+      status: 'all',
+      limit: 1,
+    });
+    const sub = subscriptions[0];
+    if (!sub) return null;
+
+    await updateSubscriptionFields(user.stripe_customer_id, {
+      subscription_id: sub.id,
+      subscription_status: sub.status,
+      subscription_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+      is_paid: sub.status === 'active',
+    });
+    logger.info(`[Stripe] Synced subscription for customer ${user.stripe_customer_id}: ${sub.status}`);
+    return sub.status;
+  } catch (err) {
+    logger.error('[Stripe] Failed to sync subscription from Stripe:', err.message);
+    return null;
+  }
+}
+
 export class SubscriptionController {
   createCheckoutSession = asyncHandler(async (req, res) => {
     const stripe = getStripe();
@@ -74,11 +104,18 @@ export class SubscriptionController {
   });
 
   getStatus = asyncHandler(async (req, res) => {
-    const user = await getUserSubscription(req.userId);
+    let user = await getUserSubscription(req.userId);
     const { count } = await supabase
       .from('journeys')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', req.userId);
+
+    // If subscription_status is unset but a Stripe customer exists, the webhook
+    // may have been missed — verify directly and sync.
+    if (!user?.subscription_status && user?.stripe_customer_id) {
+      const synced = await syncSubscriptionFromStripe(req.userId);
+      if (synced) user = await getUserSubscription(req.userId);
+    }
 
     const isActive = ['active', 'trialing'].includes(user?.subscription_status);
 
@@ -89,6 +126,17 @@ export class SubscriptionController {
       freeLimit: FREE_JOURNEY_LIMIT,
       canCreateJourney: isActive || (count || 0) < FREE_JOURNEY_LIMIT,
       periodEnd: user?.subscription_period_end || null,
+    });
+  });
+
+  verifySubscription = asyncHandler(async (req, res) => {
+    const synced = await syncSubscriptionFromStripe(req.userId);
+    const user = await getUserSubscription(req.userId);
+    const isActive = ['active', 'trialing'].includes(user?.subscription_status);
+    res.json({
+      synced: synced !== null,
+      subscriptionStatus: user?.subscription_status || 'none',
+      isActive,
     });
   });
 

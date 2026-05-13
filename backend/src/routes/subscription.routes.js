@@ -9,5 +9,6 @@ router.use(authenticate);
 router.post('/checkout', subscriptionController.createCheckoutSession);
 router.post('/portal', subscriptionController.createPortalSession);
 router.get('/status', subscriptionController.getStatus);
+router.post('/verify', subscriptionController.verifySubscription);
 
 export default router;
