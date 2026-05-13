@@ -1,18 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useJourneyStore } from '../store/journeyStore';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import JourneyCompletionModal from '../components/common/JourneyCompletionModal';
 import { CheckCircle2, Circle, Play } from 'lucide-react';
 
 export default function JourneyDetail() {
   const { id } = useParams();
   const { currentJourney, fetchJourney, markDayComplete, isLoading } = useJourneyStore();
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   useEffect(() => {
     fetchJourney(id);
   }, [id, fetchJourney]);
+
+  // Show modal for journeys that were already completed before this session
+  useEffect(() => {
+    if (currentJourney?.status === 'completed' && !showCompletionModal) {
+      setShowCompletionModal(true);
+    }
+  }, [currentJourney?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleMarkDayComplete = async (journeyId, dayNumber) => {
+    const { journeyCompleted } = await markDayComplete(journeyId, dayNumber);
+    if (journeyCompleted) {
+      setShowCompletionModal(true);
+    }
+  };
 
   if (isLoading || !currentJourney) {
     return (
@@ -50,7 +66,7 @@ export default function JourneyDetail() {
                       <Button
                         variant="gradient"
                         size="sm"
-                        onClick={() => markDayComplete(currentJourney.id, day.day_number)}
+                        onClick={() => handleMarkDayComplete(currentJourney.id, day.day_number)}
                       >
                         <Play className="h-4 w-4 mr-2" />
                         Listen
@@ -71,7 +87,13 @@ export default function JourneyDetail() {
           </div>
         </div>
       </div>
+
+      {showCompletionModal && (
+        <JourneyCompletionModal
+          journey={currentJourney}
+          onClose={() => setShowCompletionModal(false)}
+        />
+      )}
     </div>
   );
 }
-

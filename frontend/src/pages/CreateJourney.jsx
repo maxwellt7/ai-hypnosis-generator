@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useJourneyStore } from '../store/journeyStore';
@@ -6,20 +6,33 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { subscriptionService } from '../services/subscription.service';
+import { journeyService } from '../services/journey.service';
 
 export default function CreateJourney() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isNewSubscriber = searchParams.get('welcome') === 'true';
+  const fromJourneyId = searchParams.get('from_journey');
   const { createJourney } = useJourneyStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [completedJourneyGoal, setCompletedJourneyGoal] = useState(null);
   const [formData, setFormData] = useState({
     goal: '',
     intention: '',
     duration: 15,
   });
+
+  // Pre-fill goal suggestion from completed journey
+  useEffect(() => {
+    if (!fromJourneyId) return;
+    journeyService.getJourney(fromJourneyId).then((journey) => {
+      setCompletedJourneyGoal(journey.goal);
+    }).catch(() => {
+      // Silently ignore — completed journey fetch is best-effort
+    });
+  }, [fromJourneyId]);
 
   const handleCheckout = async () => {
     setCheckoutLoading(true);
@@ -58,6 +71,19 @@ export default function CreateJourney() {
           <div className="mb-6 rounded-lg bg-green-50 border border-green-200 px-5 py-4">
             <p className="text-green-800 font-semibold text-sm">Payment confirmed — welcome to Sacred Heart!</p>
             <p className="text-green-700 text-sm mt-1">Create your first 7-day hypnosis journey below to get started.</p>
+          </div>
+        )}
+        {fromJourneyId && (
+          <div className="mb-6 rounded-lg bg-purple-50 border border-purple-200 px-5 py-4">
+            <p className="text-purple-800 font-semibold text-sm">🌟 Congratulations on completing your last journey!</p>
+            {completedJourneyGoal && (
+              <p className="text-purple-700 text-sm mt-1">
+                You worked on: <em>&ldquo;{completedJourneyGoal}&rdquo;</em>
+              </p>
+            )}
+            <p className="text-purple-700 text-sm mt-1">
+              What would you like to focus on next? Describe your next goal below.
+            </p>
           </div>
         )}
         <Card>

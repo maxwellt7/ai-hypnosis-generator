@@ -53,8 +53,8 @@ export const useJourneyStore = create((set, get) => ({
   // Mark day complete
   markDayComplete: async (journeyId, dayNumber) => {
     try {
-      const updatedDay = await journeyService.markDayComplete(journeyId, dayNumber);
-      
+      const { day: updatedDay, journeyCompleted } = await journeyService.markDayComplete(journeyId, dayNumber);
+
       // Update current journey if it's loaded
       const currentJourney = get().currentJourney;
       if (currentJourney && currentJourney.id === journeyId) {
@@ -65,11 +65,12 @@ export const useJourneyStore = create((set, get) => ({
           currentJourney: {
             ...currentJourney,
             journey_days: updatedDays,
+            ...(journeyCompleted ? { status: 'completed' } : {}),
           },
         });
       }
-      
-      return updatedDay;
+
+      return { day: updatedDay, journeyCompleted };
     } catch (error) {
       set({ error: error.message });
       throw error;

@@ -4,6 +4,7 @@ import { pineconeService } from './pinecone.service.js';
 import { logger } from '../utils/logger.js';
 import { NotFoundError, AuthorizationError } from '../utils/errors.js';
 import { JOURNEY_STATUS } from '../utils/constants.js';
+import { emailService } from './email.service.js';
 
 export class JourneyService {
   async createJourney(userId, journeyData) {
@@ -207,10 +208,10 @@ export class JourneyService {
       await this.updateUserStats(userId, day.duration_seconds || 0);
 
       // Check if journey is complete
-      await this.checkJourneyCompletion(journeyId);
+      const journeyCompleted = await this.checkJourneyCompletion(journeyId, userId);
 
       logger.info(`Day ${dayNumber} marked complete for journey: ${journeyId}`);
-      return updated;
+      return { day: updated, journeyCompleted };
     } catch (error) {
       logger.error('Error marking day complete:', error);
       throw error;
@@ -275,7 +276,7 @@ export class JourneyService {
     }
   }
 
-  async checkJourneyCompletion(journeyId) {
+  async checkJourneyCompletion(journeyId, userId) {
     try {
       // Get all days for the journey
       const { data: days } = await supabase
@@ -283,25 +284,65 @@ export class JourneyService {
         .select('completed')
         .eq('journey_id', journeyId);
 
-      if (!days || days.length === 0) return;
+      if (!days || days.length === 0) return false;
 
       // Check if all days are completed
       const allComplete = days.every(day => day.completed);
 
       if (allComplete) {
+        const now = new Date().toISOString();
+
+        // Fetch journey goal for email
+        const { data: journey } = await supabase
+          .from('journeys')
+          .select('goal, status')
+          .eq('id', journeyId)
+          .single();
+
+        // Only trigger completion logic once
+        if (journey?.status === JOURNEY_STATUS.COMPLETED) return false;
+
         await supabase
           .from('journeys')
           .update({
             status: JOURNEY_STATUS.COMPLETED,
-            updated_at: new Date().toISOString(),
+            completed_at: now,
+            updated_at: now,
           })
           .eq('id', journeyId);
 
         logger.info(`Journey completed: ${journeyId}`);
+
+        // Send celebration email (non-blocking)
+        this.sendCompletionEmail(journeyId, userId, journey?.goal).catch(err =>
+          logger.error('Failed to send journey completion email:', err)
+        );
+
+        return true;
       }
+
+      return false;
     } catch (error) {
       logger.error('Error checking journey completion:', error);
+      return false;
     }
+  }
+
+  async sendCompletionEmail(journeyId, userId, goal) {
+    // Fetch user email + name from auth + profile
+    const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+    const email = authUser?.user?.email;
+    if (!email) return;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, full_name')
+      .eq('user_id', userId)
+      .single();
+
+    const name = profile?.name || profile?.full_name || email.split('@')[0];
+
+    await emailService.sendJourneyCompletionEmail(email, { name, goal, journeyId });
   }
 
   async deleteJourney(journeyId, userId) {

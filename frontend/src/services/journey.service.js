@@ -23,7 +23,7 @@ export const journeyService = {
 
   async markDayComplete(journeyId, dayNumber) {
     const response = await api.post(`/api/journeys/${journeyId}/days/${dayNumber}/complete`);
-    return response.day;
+    return { day: response.day, journeyCompleted: response.journeyCompleted };
   },
 
   async deleteJourney(id) {

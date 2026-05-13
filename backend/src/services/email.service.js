@@ -127,6 +127,56 @@ export class EmailService {
     });
   }
 
+  async sendJourneyCompletionEmail(to, data) {
+    const nextJourneyUrl = `${process.env.FRONTEND_URL}/create-journey?from_journey=${data.journeyId}`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+          .reflection { background: white; border-left: 4px solid #667eea; padding: 16px 20px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+          .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🌟 Journey Complete!</h1>
+            <p style="margin:0;font-size:18px;opacity:0.9;">You did it, ${data.name}!</p>
+          </div>
+          <div class="content">
+            <p>Seven days ago you set an intention: <strong>${data.goal}</strong></p>
+            <p>You showed up every day, and that consistency is the foundation of real transformation. Take a moment to honour that.</p>
+            <p><strong>Reflect on your journey:</strong></p>
+            <div class="reflection">What shifts — however subtle — did you notice in your thoughts, feelings, or behaviours this week?</div>
+            <div class="reflection">What moment from the 7 sessions will you carry forward with you?</div>
+            <div class="reflection">What would you like to explore or deepen in your next journey?</div>
+            <p>Your mind is primed and ready to go deeper. Start your next journey while the momentum is alive:</p>
+            <p style="text-align: center;">
+              <a href="${nextJourneyUrl}" class="button">Create Your Next Journey</a>
+            </p>
+            <p>Proud of you,<br>The Sacred Heart Team</p>
+          </div>
+          <div class="footer">
+            <p>Questions? Reply to this email or visit our support centre.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to,
+      subject: `🌟 You completed your 7-day journey, ${data.name}!`,
+      html,
+    });
+  }
+
   async sendWelcomeEmail(to, data) {
     const html = `
       <!DOCTYPE html>

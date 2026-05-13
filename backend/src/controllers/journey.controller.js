@@ -63,12 +63,12 @@ export class JourneyController {
 
   markDayComplete = asyncHandler(async (req, res) => {
     const { id, dayNumber } = req.params;
-    const day = await journeyService.markDayComplete(id, parseInt(dayNumber), req.userId);
+    const { day, journeyCompleted } = await journeyService.markDayComplete(id, parseInt(dayNumber), req.userId);
 
     res.json({
       success: true,
-      data: { day },
-      message: 'Day marked as complete!',
+      data: { day, journeyCompleted },
+      message: journeyCompleted ? 'Journey complete! Well done.' : 'Day marked as complete!',
     });
   });
 
