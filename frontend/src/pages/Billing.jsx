@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { subscriptionService } from '../services/subscription.service';
+import { pixelInitiateCheckout, pixelPurchase } from '../utils/analytics';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 
@@ -22,6 +23,7 @@ export default function Billing() {
 
   useEffect(() => {
     if (searchParams.get('checkout') === 'success') {
+      pixelPurchase(29);
       navigate('/create-journey?welcome=true', { replace: true });
     } else if (searchParams.get('checkout') === 'cancelled') {
       toast.info('Checkout cancelled. No charge was made.');
@@ -38,6 +40,7 @@ export default function Billing() {
   const handleCheckout = async () => {
     setActionLoading(true);
     try {
+      pixelInitiateCheckout(29);
       const url = await subscriptionService.startCheckout();
       window.location.href = url;
     } catch {
