@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { supabase } from '../config/supabase.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 import { logger } from '../utils/logger.js';
+import { sendLeadEvent } from '../utils/facebook-capi.js';
 
 const PROVISION_ACCESS_TOKEN = process.env.PROVISION_ACCESS_TOKEN;
 
@@ -60,6 +61,7 @@ export class ProvisionController {
         supabase.from('user_stats').insert({ user_id: userId }),
       ]);
 
+      sendLeadEvent(email).catch(() => {});
       logger.info(`[Provision] New user created: ${userId}`);
     }
 

@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { supabase } from '../config/supabase.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 import { logger } from '../utils/logger.js';
+import { sendPurchaseEvent } from '../utils/facebook-capi.js';
 
 export const FREE_JOURNEY_LIMIT = 1;
 
@@ -159,7 +160,7 @@ export class SubscriptionController {
 
     switch (event.type) {
       case 'customer.subscription.created':
-      case 'customer.subscription.updated':
+      case 'customer.subscription.updated': {
         await updateSubscriptionFields(obj.customer, {
           subscription_id: obj.id,
           subscription_status: obj.status,
@@ -167,7 +168,12 @@ export class SubscriptionController {
           is_paid: obj.status === 'active',
         });
         logger.info(`[Stripe] Subscription ${event.type}: ${obj.id} → ${obj.status}`);
+        if (event.type === 'customer.subscription.created' && obj.status === 'active') {
+          const customer = await stripe.customers.retrieve(obj.customer);
+          if (customer?.email) sendPurchaseEvent(customer.email).catch(() => {});
+        }
         break;
+      }
 
       case 'customer.subscription.deleted':
         await updateSubscriptionFields(obj.customer, {
